@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Itens de Solução/">
+    <File Path=".gitignore" />
+    <File Path="readme.md" />
+  </Folder>
+  <Project Path="../Playground/Playground.csproj" />
+  <Project Path="Maestro.csproj" />
+</Solution>
