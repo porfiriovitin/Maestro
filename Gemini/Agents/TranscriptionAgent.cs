@@ -2,16 +2,16 @@
 using System.Buffers.Binary;
 using System.Text.Json;
 
-namespace Maestro.Gemini.Features;
+namespace Maestro.Gemini.Agents;
 
-public class Transcription
+public class TranscriptionAgent
 {
     /// <summary>
     /// Base.
     /// </summary>
     private ChatGemini _gemini;
 
-    public Transcription(GeminiMaestro maestro )
+    public TranscriptionAgent(GeminiMaestro maestro )
     {
         _gemini = new ChatGemini(maestro);
     }
@@ -19,7 +19,6 @@ public class Transcription
     /// <summary>
     /// Transcribes the audio file to text.
     /// </summary>
-    /// <param name="audioPath"> Path for the audio file </param>
     /// <returns> The transcribed text </returns>
     public async Task<String> TranscribeAudio(string audioPath)
     {
@@ -39,7 +38,6 @@ public class Transcription
     /// <summary>
     /// Transcribes the audio file to text and analyzes the feeling expressed in it.
     /// </summary>
-    /// <param name="audioPath"> Path for the audio file </param>
     /// <returns> Object FeelingAnalysysOutput </returns>
     public async Task<FeelingAnalysysOutput> TranscribeAndAnalyze(string audioPath)
     {
@@ -62,8 +60,6 @@ public class Transcription
     /// <summary>
     /// Verifies if the inputed file is an audio file.
     /// </summary>
-    /// <param name="audioPath">Path for the audio file</param>
-    /// <param name="reason">Validation failed reason</param>
     internal static bool IsAudioFile(string audioPath, out string reason)
     {
         reason = string.Empty;

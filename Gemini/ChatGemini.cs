@@ -3,7 +3,7 @@ using Google.GenAI.Types;
 using Maestro.Gemini.Models;
 using Newtonsoft.Json.Linq;
 
-namespace Maestro.Gemini.Features;
+namespace Maestro.Gemini;
 
 public class ChatGemini
 {
