@@ -1,6 +1,8 @@
 ﻿using Google.GenAI;
 using Google.GenAI.Types;
 using Maestro.Gemini.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Maestro.Gemini;
 
@@ -9,11 +11,12 @@ public class ChatGemini
     private readonly string _apiKey;
     private readonly Client _client;
     private readonly List<Content> _chatHistory;
+    private string[] modelsWithNoThinking = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro", "gemini-2.0-flash"];
 
     public ChatGemini(string apiKey)
     {
         _apiKey = apiKey;
-        _client = new Client(apiKey:_apiKey);
+        _client = new Client(apiKey: _apiKey);
         _chatHistory = [];
     }
 
@@ -29,17 +32,26 @@ public class ChatGemini
                     [
                         new() { Text = parameters.SystemPrompt ?? "Você é um assistente muito útil"}
                     ]
-                }
+                },
+                Temperature = parameters.Temperature ?? 0,
             };
+
+            if (!modelsWithNoThinking.Contains(parameters.Model.Value()))
+            {
+                config.ThinkingConfig = new ThinkingConfig
+                {
+                    ThinkingLevel = parameters.ThinkingLevel ?? ThinkingLevel.LOW
+                };
+            }
 
 
             if (parameters.History != null)
             {
-                foreach (var msg in parameters.History) 
+                foreach (var msg in parameters.History)
                 {
                     _chatHistory.Add(new Content
                     {
-                        Role = msg.Role == "assistant" ? "model" : "user", 
+                        Role = msg.Role == "assistant" ? "model" : "user",
                         Parts = [new Part { Text = msg.Message }]
                     });
                 }
@@ -54,7 +66,7 @@ public class ChatGemini
             GenerateContentResponse geminiResponse = await _client.Models.GenerateContentAsync(
                 model: parameters.Model.Value(),
                 contents: _chatHistory,
-                config: config 
+                config: config
             );
 
             if (geminiResponse.Candidates == null || geminiResponse.Candidates.Count == 0)
@@ -97,6 +109,193 @@ public class ChatGemini
         }
     }
 
-    
+    public async Task<ChatResponse> WebSearchInvoke(ChatRequest parameters)
+    {
+        try
+        {
+            var config = new GenerateContentConfig
+            {
+                SystemInstruction = new Content
+                {
+                    Parts =
+                    [
+                        new() { Text = parameters.SystemPrompt ?? "Você é um assistente de pesquisas web muito útil"}
+                    ]
+                },
+                Tools = [
+                    new Google.GenAI.Types.Tool
+                    {
+                        GoogleSearch = new GoogleSearch()
+                    }
+                    ],
+                Temperature = parameters.Temperature ?? 0
+            };
+
+            if (!modelsWithNoThinking.Contains(parameters.Model.Value()))
+            {
+                config.ThinkingConfig = new ThinkingConfig
+                {
+                    ThinkingLevel = parameters.ThinkingLevel ?? ThinkingLevel.LOW
+                };
+            }
+
+
+            if (parameters.History != null)
+            {
+                foreach (var msg in parameters.History)
+                {
+                    _chatHistory.Add(new Content
+                    {
+                        Role = msg.Role == "assistant" ? "model" : "user",
+                        Parts = [new Part { Text = msg.Message }]
+                    });
+                }
+            }
+
+            _chatHistory.Add(new Content
+            {
+                Role = "user",
+                Parts = [new Part { Text = parameters.UserPrompt }]
+            });
+
+            GenerateContentResponse geminiResponse = await _client.Models.GenerateContentAsync(
+                model: parameters.Model.Value(),
+                contents: _chatHistory,
+                config: config
+            );
+
+            if (geminiResponse.Candidates == null || geminiResponse.Candidates.Count == 0)
+                return new ChatResponse
+                {
+                    Content = string.Empty,
+                    InputTokens = geminiResponse.UsageMetadata?.PromptTokenCount ?? 0,
+                    OutputTokens = geminiResponse.UsageMetadata?.CandidatesTokenCount ?? 0,
+                    TotalTokens = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0
+                };
+
+            var candidate = geminiResponse.Candidates[0];
+            if (candidate.Content is null || candidate.Content.Parts is null || candidate.Content.Parts.Count is 0)
+                return new ChatResponse
+                {
+                    Content = string.Empty,
+                    InputTokens = geminiResponse.UsageMetadata?.PromptTokenCount ?? 0,
+                    OutputTokens = geminiResponse.UsageMetadata?.CandidatesTokenCount ?? 0,
+                    TotalTokens = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0,
+                };
+
+            return new ChatResponse
+            {
+                Content = candidate.Content.Parts[0].Text ?? string.Empty,
+                InputTokens = geminiResponse.UsageMetadata?.PromptTokenCount ?? 0,
+                OutputTokens = geminiResponse.UsageMetadata?.CandidatesTokenCount ?? 0,
+                TotalTokens = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
+            return new ChatResponse
+            {
+                Content = ex.Message,
+                InputTokens = 0,
+                OutputTokens = 0,
+                TotalTokens = 0
+            };
+        }
+    }
+
+    public async Task<ChatResponse> InvokeWithStructuredOutput(ChatRequest parameters)
+    {
+        try
+        {
+            var config = new GenerateContentConfig
+            {
+                SystemInstruction = new Content
+                {
+                    Parts =
+                    [
+                        new() { Text = parameters.SystemPrompt ?? "Você é um assistente muito útil"}
+                    ]
+                },
+                Temperature = parameters.Temperature ?? 0,
+
+                ResponseSchema = parameters.ResponseSchema
+
+            };
+
+            if (!modelsWithNoThinking.Contains(parameters.Model.Value()))
+            {
+                config.ThinkingConfig = new ThinkingConfig
+                {
+                    ThinkingLevel = parameters.ThinkingLevel ?? ThinkingLevel.LOW
+                };
+            }
+
+
+            if (parameters.History != null)
+            {
+                foreach (var msg in parameters.History)
+                {
+                    _chatHistory.Add(new Content
+                    {
+                        Role = msg.Role == "assistant" ? "model" : "user",
+                        Parts = [new Part { Text = msg.Message }]
+                    });
+                }
+            }
+
+            _chatHistory.Add(new Content
+            {
+                Role = "user",
+                Parts = [new Part { Text = parameters.UserPrompt }]
+            });
+
+            GenerateContentResponse geminiResponse = await _client.Models.GenerateContentAsync(
+                model: parameters.Model.Value(),
+                contents: _chatHistory,
+                config: config
+            );
+
+            if (geminiResponse.Candidates == null || geminiResponse.Candidates.Count == 0)
+                return new ChatResponse
+                {
+                    Content = string.Empty,
+                    InputTokens = geminiResponse.UsageMetadata?.PromptTokenCount ?? 0,
+                    OutputTokens = geminiResponse.UsageMetadata?.CandidatesTokenCount ?? 0,
+                    TotalTokens = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0
+                };
+
+            var candidate = geminiResponse.Candidates[0];
+            if (candidate.Content is null || candidate.Content.Parts is null || candidate.Content.Parts.Count is 0)
+                return new ChatResponse
+                {
+                    Content = string.Empty,
+                    InputTokens = geminiResponse.UsageMetadata?.PromptTokenCount ?? 0,
+                    OutputTokens = geminiResponse.UsageMetadata?.CandidatesTokenCount ?? 0,
+                    TotalTokens = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0,
+                };
+
+            /// :: Must serialize after using
+            return new ChatResponse
+            {
+                Content = candidate.Content.Parts[0].Text ?? string.Empty,
+                InputTokens = geminiResponse.UsageMetadata?.PromptTokenCount ?? 0,
+                OutputTokens = geminiResponse.UsageMetadata?.CandidatesTokenCount ?? 0,
+                TotalTokens = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
+            return new ChatResponse
+            {
+                Content = ex.Message,
+                InputTokens = 0,
+                OutputTokens = 0,
+                TotalTokens = 0
+            };
+        }
+    }
+
 
 }
