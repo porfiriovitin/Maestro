@@ -329,15 +329,6 @@ A classe [`ChatGemini`](Gemini/Features/ChatGemini.cs) faz upload automático de
 - ✔️ Utilize using statements para recursos descartáveis
 - ✔️ Prefira structs para DTOs pequenos e imutáveis
 
-## 🔄 Roadmap
-
-- [ ] Suporte para OpenAI GPT-4
-- [ ] Suporte para Anthropic Claude
-- [ ] Sistema de cache de respostas
-- [ ] Suporte para streaming de respostas
-- [ ] Interface CLI para testes rápidos
-- [ ] Package NuGet oficial
-
 ## 👨‍💻 Desenvolvido por:
 
 **Victor Hugo Porfirio**  

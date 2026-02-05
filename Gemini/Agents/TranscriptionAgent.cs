@@ -9,7 +9,7 @@ public class TranscriptionAgent
     /// <summary>
     /// Base.
     /// </summary>
-    private ChatGemini _gemini;
+    private readonly ChatGemini _gemini;
 
     public TranscriptionAgent(GeminiMaestro maestro )
     {
@@ -57,6 +57,7 @@ public class TranscriptionAgent
         return parsedResponse;
     }
 
+    #region Validations
     /// <summary>
     /// Verifies if the inputed file is an audio file.
     /// </summary>
@@ -166,4 +167,6 @@ public class TranscriptionAgent
         if (h.Length < 2) return false;
         return h[0] == 0xFF && (h[1] & 0xF0) == 0xF0;
     }
+
+    #endregion
 }
