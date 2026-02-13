@@ -1,19 +1,39 @@
-﻿using Maestro.Gemini.Models;
+﻿using Maestro.Gemini;
+using Maestro.Gemini.Examples.TextTranscription.Models;
+using Maestro.Gemini.Examples.TextTranscription.Models.Outputs;
+using Maestro.Gemini.Models;
 using System.Buffers.Binary;
 using System.Text.Json;
 
-namespace Maestro.Gemini.Agents;
+namespace Maestro.Gemini.Examples.TextTranscription;
 
 public class TranscriptionAgent
 {
     /// <summary>
     /// Base.
     /// </summary>
-    private readonly ChatGemini _gemini;
+    private readonly GeminiClient _maestro;
+    private readonly GeminiAgent _transcriptionAgent;
+    private readonly GeminiAgent _feelingAnalysisAgent;
 
-    public TranscriptionAgent(GeminiMaestro maestro )
+    public TranscriptionAgent(string apiKey)
     {
-        _gemini = new ChatGemini(maestro);
+        _maestro = new GeminiClient(apiKey: apiKey);
+        
+        _transcriptionAgent = _maestro.CreateAgent(new CreateGeminiAgentRequest
+        {
+           Model = GeminiModel.Gemini_2_5_Flash,
+           SystemPrompt = Prompts.AudioTranscription.systemPrompt,
+           UserPrompt = Prompts.AudioTranscription.userPrompt,
+        });
+
+        _feelingAnalysisAgent = _maestro.CreateAgent(new CreateGeminiAgentRequest
+        {
+            Model = GeminiModel.Gemini_2_5_Flash,
+            SystemPrompt = Prompts.FeelingAnalysys.systemPrompt,
+            UserPrompt = Prompts.FeelingAnalysys.userPrompt,
+        });
+
     }
 
     /// <summary>
@@ -23,14 +43,9 @@ public class TranscriptionAgent
     public async Task<String> TranscribeAudio(string audioPath)
     {
         if (!IsAudioFile(audioPath, out var reason))
-            throw new ArgumentException($"O arquivo fornecido não é um arquivo de áudio válido: {reason}");
+            throw new ArgumentException($"The audio file isn't supported: {reason}");
 
-        ChatResponse response = await _gemini.InvokeMultimodalAgent(new ChatRequest()
-        {
-            Model = GeminiModel.Gemini_2_5_Flash,
-            SystemPrompt = Prompts.AudioTranscription.systemPrompt,
-            UserPrompt = Prompts.AudioTranscription.userPrompt,
-        }, filePath: audioPath);
+        ChatResponse response = await _transcriptionAgent.InvokeMultimodal(audioPath);
 
         return response.Content;
     }
@@ -44,13 +59,7 @@ public class TranscriptionAgent
         if (!IsAudioFile(audioPath, out var reason))
             throw new ArgumentException($"O arquivo fornecido não é um arquivo de áudio válido: {reason}");
 
-        ChatResponse response = await _gemini.InvokeMultimodalAgent(new ChatRequest()
-        {
-            Model = GeminiModel.Gemini_2_5_Flash,
-            SystemPrompt = Prompts.FeelingAnalysys.systemPrompt,
-            UserPrompt = Prompts.FeelingAnalysys.userPrompt,
-            ResponseSchema = FeelingAnalysys.OutputSchema
-        }, filePath: audioPath);
+        ChatResponse response = await _feelingAnalysisAgent.InvokeMultimodal( filePath: audioPath, responseSchema: FeelingAnalysys.OutputSchema);
 
         FeelingAnalysysOutput parsedResponse = JsonSerializer.Deserialize<FeelingAnalysysOutput>(response.Content);
 

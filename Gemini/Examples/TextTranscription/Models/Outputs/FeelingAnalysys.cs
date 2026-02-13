@@ -1,7 +1,7 @@
 ﻿using Google.GenAI.Types;
 using System.Text.Json.Serialization;
 
-namespace Maestro.Gemini.Models;
+namespace Maestro.Gemini.Examples.TextTranscription.Models.Outputs;
 
 public static class FeelingAnalysys
 {

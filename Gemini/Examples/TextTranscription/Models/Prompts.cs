@@ -1,4 +1,4 @@
-﻿namespace Maestro.Gemini.Models;
+﻿namespace Maestro.Gemini.Examples.TextTranscription.Models;
 
 public static class Prompts
 {
