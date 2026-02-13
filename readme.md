@@ -246,19 +246,19 @@ public enum ThinkingCapacity
 Maestro/
 ├── Gemini/
 │   ├── GeminiClient.cs            # Cliente base do Gemini
-│   ├── GeminiAgent.cs             # Agente principal do Gemini
+│   ├── GeminiAgent.cs             # Classe de criação de agentes do Gemini
 │   ├── Examples/
 │   │   ├── Chatbot/
 │   │   │   └── Chatbot.cs         # Exemplo de chatbot
 │   │   └── TextTranscription/
-│   │       ├── TranscriptionAgent.cs  # Agente de transcrição
+│   │       ├── TranscriptionAgent.cs  # Exemplo de Agente de transcrição
 │   │       └── Models/
 │   │           ├── Prompts.cs     # Prompts do sistema
 │   │           └── Outputs/
-│   │               └── FeelingAnalysys.cs # Modelos de análise de sentimento
+│   │               └── FeelingAnalysys.cs # Modelos de saída de análise de sentimento
 │   └── Models/
 │       ├── ChatMessage.cs         # Modelo de mensagem de chat
-│       ├── GeminiModels.cs        # Enums e extensões de modelos
+│       ├── GeminiModels.cs        # Enums dos modelos
 │       ├── Requests/
 │       │   └── CreateGeminiAgentRequest.cs # Modelo de criação de agente
 │       └── Responses/
