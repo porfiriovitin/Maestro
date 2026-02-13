@@ -16,7 +16,7 @@ public class GeminiAgent(Client client, CreateGeminiAgentRequest parameters)
     private List<Content> _chatHistory = [];
     private readonly GeminiModel _model = parameters.Model != default ? parameters.Model : GeminiModel.Gemini_2_5_Flash_Lite;
     private readonly string _systemPrompt = parameters.SystemPrompt ?? "Você é um assistente muito útil";
-    private string _userPrompt = parameters.UserPrompt;
+    private string _userPrompt = parameters.UserPrompt ?? "";
     private readonly ThinkingLevel _thinkingLevel = parameters.ThinkingCapacity != default ? parameters.ThinkingCapacity.ToThinkingLevel() : ThinkingCapacity.LOW.ToThinkingLevel();
     private readonly float _temperature = parameters.Temperature;
 
@@ -48,6 +48,11 @@ public class GeminiAgent(Client client, CreateGeminiAgentRequest parameters)
                 {
                     ThinkingLevel = this._thinkingLevel
                 };
+            }
+
+            if (String.IsNullOrEmpty(this._userPrompt))
+            {
+                throw new Exception("Please provide an User Prompt for the assistant");
             }
 
             /// :: Add the user prompt to the chat history.
@@ -143,6 +148,12 @@ public class GeminiAgent(Client client, CreateGeminiAgentRequest parameters)
                 };
             }
 
+            /// :: Validate if there is a user prompt.
+            if (String.IsNullOrEmpty(this._userPrompt))
+            {
+                throw new Exception("Please provide an User Prompt for the assistant");
+            }
+
             /// :: Add the user prompt to the chat history.
             _chatHistory.Add(new Content
             {
@@ -229,6 +240,12 @@ public class GeminiAgent(Client client, CreateGeminiAgentRequest parameters)
                 {
                     ThinkingLevel = this._thinkingLevel
                 };
+            }
+
+            /// :: Validate if there is a user prompt.
+            if (String.IsNullOrEmpty(this._userPrompt))
+            {
+                throw new Exception("Please provide an User Prompt for the assistant");
             }
 
             /// :: Adds the user prompt to the chat.
@@ -361,6 +378,12 @@ public class GeminiAgent(Client client, CreateGeminiAgentRequest parameters)
                     },
                 ]
             });
+
+            /// :: Validate if there is a user prompt.
+            if (String.IsNullOrEmpty(this._userPrompt))
+            {
+                throw new Exception("Please provide an User Prompt for the assistant");
+            }
 
             /// :: Adds the user prompt to the chat history.
             _chatHistory.Add(new Content

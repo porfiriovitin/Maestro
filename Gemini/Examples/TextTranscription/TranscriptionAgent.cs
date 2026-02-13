@@ -1,5 +1,4 @@
-﻿using Maestro.Gemini;
-using Maestro.Gemini.Examples.TextTranscription.Models;
+﻿using Maestro.Gemini.Examples.TextTranscription.Models;
 using Maestro.Gemini.Examples.TextTranscription.Models.Outputs;
 using Maestro.Gemini.Models;
 using System.Buffers.Binary;
@@ -7,6 +6,10 @@ using System.Text.Json;
 
 namespace Maestro.Gemini.Examples.TextTranscription;
 
+
+/// <summary>
+/// Example applicantion that demonstrates how to use Gemini agents to transcribe audio files and analyze the feelings expressed in them.
+/// </summary>
 public class TranscriptionAgent
 {
     /// <summary>
